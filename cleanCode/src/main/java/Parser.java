@@ -50,7 +50,7 @@ public class Parser {
             System.out.println(i+" : "+countLine);
 
             for (int j = 0; j < numbersCode[i].length(); j++) {
-                if(j == 3  j == 6  j == 9  j == 12  j == 15  j == 18  j == 21  j == 24  j == 27 ){
+                if(j == 3 || j == 6 || j == 9 || j == 12 || j == 15 || j == 18 || j == 21 || j == 24 || j == 27 ){
                     characWidth++;
                 }
                 character=getCharacterCode(numbersCode[i].charAt(j));
