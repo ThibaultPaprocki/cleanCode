@@ -34,9 +34,9 @@ public class Parser {
         int[] number = new int[9];
         Arrays.fill(resultCode, "");
         String character;
+        String checksumResult;
 
         while((line = br.readLine()) != null){
-
             numbersCode[countLine]=line;
             numbersCode[countLine]=addMissingEscape(numbersCode[countLine]);
             countLine++;
@@ -47,10 +47,8 @@ public class Parser {
 
 
         for (int i = 0; i < countLine; i++) {
-            System.out.println(i+" : "+countLine);
-
             for (int j = 0; j < numbersCode[i].length(); j++) {
-                if(j == 3  j == 6  j == 9  j == 12  j == 15  j == 18  j == 21  j == 24  j == 27 ){
+                if(j == 3 || j == 6 || j == 9 || j == 12 || j == 15 || j == 18 || j == 21 || j == 24 || j == 27 ){
                     characWidth++;
                 }
                 character=getCharacterCode(numbersCode[i].charAt(j));
@@ -62,7 +60,10 @@ public class Parser {
                 for (int j = 0; j < resultCode.length; j++) {
                     number[j] = getCodeValue(resultCode[j]);
                 }
-                displayNumber(number);
+
+                checksumResult = checkChecksum(number);
+
+                displayResults(number,checksumResult);
             }
         }
         br.close();
@@ -79,19 +80,34 @@ public class Parser {
     }
 
     public int getCodeValue(String number) {
-        int code = 0;
+        int errorCode = 42;
+
         for (Map.Entry<String, Integer> entry : codes.entrySet()) {
             if (entry.getKey().equals(String.valueOf(number))) {  // ici c'est la key
-                code = entry.getValue();
+                return entry.getValue();
             }
         }
-        return code;
+        return errorCode;
     }
 
-    public void displayNumber(int[] number){
+    public void displayResults(int[] number, String checksumResult){
+        String errorMsg = "";
+
         for (int i = 0; i < number.length; i++) {
-            System.out.print(number[i]);
+            if(number[i] == 42){
+                System.out.print("?");
+                errorMsg = " ILL";
+            }
+            else System.out.print(number[i]);
         }
+
+        if(errorMsg == " ILL"){
+            System.out.print(errorMsg);
+        }
+        else{
+            System.out.print(checksumResult);
+        }
+
     }
 
     public String getCharacterCode(char c){
@@ -101,5 +117,21 @@ public class Parser {
             case '_': return "2";
             default: return "";
         }
+    }
+
+    private String checkChecksum(int[] number){
+        int totalChecksum = 0;
+        int position = 0;
+
+        for(int i = number.length; i > 0; i--){
+            totalChecksum += (i*position);
+            position ++;
+        }
+
+        if(totalChecksum % 11 != 0){
+            return " ERR";
+        }
+
+        return "";
     }
 }
