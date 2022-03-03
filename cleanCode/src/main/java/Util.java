@@ -4,7 +4,8 @@ public class Util {
 
     public static void showHelp(){
         System.out.println("""
-                Welcome to the help terminal commands !BEWARE !!! You need to write the pathfile in the input\s
+                Welcome to the help terminal commands !\s
+                BEWARE !!! You need to write the pathfile in the input\s
 
                 Here you can discover all commands to use :\s
 
@@ -20,22 +21,19 @@ public class Util {
     public static void menu(Parser parser, String[] args) throws Exception {
         File file = new File("cleanCode/src/test/ressources/blbl.txt");
         for(String arg : args){
-            if(arg.endsWith(".txt")){
-                parser.parseFile(new File(arg));
-            }
-            if(arg.equals("-help")){
-                Util.showHelp();
-            }
-            if(arg.equals("-result")){
-                parser.parseFile(file); //rajouter option result
-            }
-            if(arg.equals("-classificate")){
-                parser.parseFile(file);  //rajouter option classificate
-            }
-            if(arg.equals("-checksum")){
-                parser.parseFile(file); //rajouter option checksum
+            switch (arg) {
+                case ".txt":
+                    break;
+                case "-help": showHelp();
+                    break;
+                case "-result":
+                    break;
+                case "-checksum":
+                    break;
+                case "-classificate":
+                    break;
+                default: throw new IllegalArgumentException();
             }
         }
-
     }
 }
