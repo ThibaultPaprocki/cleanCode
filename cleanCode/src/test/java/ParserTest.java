@@ -5,7 +5,7 @@ import java.io.File;
 
 public class ParserTest {
 
-    private File file = new File("src/test/ressources/blbl");
+    private File file = new File("src/test/ressources/blbl.txt");
 
     public ParserTest(){
 

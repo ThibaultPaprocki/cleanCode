@@ -4,7 +4,6 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) throws Exception {
         Parser parser = new Parser();
-        File file = new File("cleanCode/src/test/ressources/blbl");
-        parser.parseFile(file);
+        Util.menu(parser,args);
     }
 }
