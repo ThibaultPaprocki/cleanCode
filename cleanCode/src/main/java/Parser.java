@@ -1,5 +1,8 @@
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class Parser {
@@ -15,11 +18,9 @@ public class Parser {
             "020121121",8,
             "020121021",9);
 
-
-    public void parseFile(File file) throws Exception {
-
+    public void parseFile(File file, boolean createFiles) throws Exception {
         FileReader fileReader = new FileReader(file);
-        BufferedReader br = new BufferedReader(fileReader);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
         String[] numbersCode = new String[100];
         Arrays.fill(numbersCode, "");
         String[] resultCode = new String[9];
@@ -27,30 +28,17 @@ public class Parser {
         String line;
         int countLine = 0;
         int characWidth = 0;
-        int[] number = new int[9];
+        List<Integer> numbers = new ArrayList<>();
         String character;
         String checkSumResult;
-//        try {
-//            File myFile = new File("src/test/ressourcesNewFile.txt");
-//
-//            if (myFile.createNewFile()){
-//                System.out.println("Le fichier est créé.");
-//            }else{
-//                System.out.println("Le fichier existe déjà.");
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
-        //  writer = new PrintWriter("ressourcesNewFile.txt", "UTF-8");
-
-        while((line = br.readLine()) != null){
+        while((line = bufferedReader.readLine()) != null){
 
             numbersCode[countLine]=line;
             numbersCode[countLine]=addMissingEscape(numbersCode[countLine]);
             countLine++;
             if (countLine%3==0){
-                br.readLine();
+                bufferedReader.readLine();
             }
 
         }
@@ -67,15 +55,29 @@ public class Parser {
 
             if(i%3 == 2){
                 for (int j = 0; j < resultCode.length; j++) {
-                    number[j] = getCodeValue(resultCode[j]);
+                    numbers.add(j,getCodeValue(resultCode[j]));
                 }
-                checkSumResult = checkChecksum(number);
-                displayResults(number,checkSumResult);
+                checkSumResult = checkChecksum(numbers);
+
+                if(createFiles){
+                    buildResults(numbers, checkSumResult);
+                }
+                else{
+                    displayResults(numbers);
+                }
+
                 Arrays.fill(resultCode, "");
-                Arrays.fill(number,0);
+                numbers.clear();
             }
         }
-        br.close();
+        bufferedReader.close();
+    }
+
+    private void displayResults(List<Integer> numbers) {
+        for(int i = 0; i < numbers.size(); i++){
+            System.out.print(numbers.get(i));
+        }
+        System.out.println();
     }
 
 
@@ -98,32 +100,26 @@ public class Parser {
         return errorCode;
     }
 
-    public void displayResults(int[] number, String checksumResult) throws FileNotFoundException, UnsupportedEncodingException {
+    public void buildResults(List<Integer> numbers, String checksum) throws IOException {
 
         String errorMsg = "";
-        for (int i = 0; i < number.length; i++) {
-            if(number[i] == 42){
-                System.out.print("?");
-                //writer.write("?");
-                errorMsg = " ILL";
+        StringBuilder code = new StringBuilder();
+
+        for (int i = 0; i < numbers.size(); i++) {
+            if(numbers.get(i) == 42){
+                code.append("?");
+                errorMsg = "ILL";
             }
             else{
-                // writer.write(number[i]);
-                System.out.print(number[i]);
+                code.append(numbers.get(i).toString());
             }
         }
 
-        if(errorMsg == " ILL"){
-            //writer.print(errorMsg);
-            System.out.print(errorMsg);
+        if("".equals(errorMsg)){
+            errorMsg = checksum;
         }
-        else{
-            //writer.print(checksumResult);
-            System.out.print(checksumResult);
-        }
-        //writer.println();
-        System.out.println();
 
+        insertInFile(code.toString(), errorMsg);
     }
 
     public String getCharacterCode(char c){
@@ -135,18 +131,71 @@ public class Parser {
         }
     }
 
-    private String checkChecksum(int[] number){
+    public String checkChecksum(List<Integer> numbers){
         int totalChecksum = 0;
-        int position = 1;
+        int position = numbers.size();
 
-        for(int i = number.length; i > 0; i--){
-            totalChecksum += (i*position);
-            position ++;
+        for(int i = 0; i < numbers.size() ; i++){
+            totalChecksum += (numbers.get(i) * position);
+            position --;
         }
 
-        if(totalChecksum % 11 != 0){ // SUSPICIEUX LUCAS  totalChecksum % 11 != 0 ??
-            return " ERR";
+        System.out.println(totalChecksum);
+        System.out.println(totalChecksum%11 != 0);
+        if(totalChecksum % 11 != 0){
+            return "ERR";
         }
         return "";
+    }
+
+    public void insertInFile(String code, String errorCode) throws IOException {
+        try{
+            String filePath = defineFileToPutData(errorCode);
+            FileOutputStream f = new FileOutputStream(filePath, true);
+
+            String codeNumberInString = formatCodeNumber(code);
+
+            String lineToAppend = codeNumberInString;
+            lineToAppend += " ";
+            lineToAppend += errorCode;
+            lineToAppend += "\n";
+
+            byte[] byteArr = lineToAppend.getBytes();
+
+            f.write(byteArr);
+
+            f.close();
+
+        }catch (IOException e) {
+            throw new IOException(e);
+        }
+    }
+
+    public String defineFileToPutData(String errorCode){
+        String filePath;
+        switch (errorCode){
+            case "ERR":
+                filePath = "src/test/ressources/Errored.txt";
+                break;
+            case "ILL":
+                filePath = "src/test/ressources/Unknown.txt";
+                break;
+            default:
+                filePath = "src/test/ressources/Authorized.txt";
+        }
+
+        return filePath;
+    }
+
+    public String formatCodeNumber(String numbers){
+        String listConvertInString = String.join("", numbers);
+        StringBuilder codeFormated = new StringBuilder();
+
+        for(int i = 0; i < listConvertInString.length(); i++){
+            if(listConvertInString.charAt(i) != ',' && listConvertInString.charAt(i) != ' ' && listConvertInString.charAt(i) != '[' && listConvertInString.charAt(i) != ']'){
+                codeFormated.append(listConvertInString.charAt(i));
+            }
+        }
+        return codeFormated.toString();
     }
 }
