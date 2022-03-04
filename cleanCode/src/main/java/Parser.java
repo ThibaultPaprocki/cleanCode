@@ -139,8 +139,6 @@ public class Parser {
             position --;
         }
 
-        System.out.println(totalChecksum);
-        System.out.println(totalChecksum%11 != 0);
         if(totalChecksum % 11 != 0){
             return "ERR";
         }

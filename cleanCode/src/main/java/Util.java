@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Util {
@@ -20,7 +21,7 @@ public class Util {
     public static void menu(Parser parser, String[] args) throws Exception {
         boolean createFile = false;
 
-        List<File> files = null;
+        List<File> files = new ArrayList<>();
         if (args.length <= 0) {
             throw new IllegalArgumentException();
         }
@@ -41,8 +42,10 @@ public class Util {
                     }
             }
         }
-        for (File file : files) {
-            parser.parseFile(file, createFile);
+        if(files != null) {
+            for (File file : files) {
+                parser.parseFile(file, createFile);
+            }
         }
     }
 }
